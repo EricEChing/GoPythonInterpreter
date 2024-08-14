@@ -10,6 +10,8 @@ import (
 	"strconv"
 )
 
+var display_bytecode_mode bool = true
+
 func main() {
 	dir, _ := os.Getwd()
 
@@ -57,8 +59,9 @@ func main() {
 	cmd := exec.Command("python3", "toBytecode.py", da_option)
 
 	output, _ := cmd.CombinedOutput()
-
-	fmt.Println(string(output))
+	if display_bytecode_mode {
+		fmt.Println(string(output))
+	}
 
 	instructions, _ := ParseBytecode(string(output))
 
