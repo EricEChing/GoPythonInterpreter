@@ -6,9 +6,10 @@ import (
 )
 
 type VirtualMachine struct {
-	stack     []string
-	bytecodes []BytecodeInstruction
-	namespace map[string]any
+	stack       []string
+	bytecodes   []BytecodeInstruction
+	namespace   map[string]any
+	currentLine int
 }
 
 func (vm *VirtualMachine) add2Stack(s string) {
@@ -27,8 +28,9 @@ func (vm *VirtualMachine) handleCOMPARE_OP() {
 
 	if arg1 == arg2 {
 		vm.add2Stack("true")
+	} else {
+		vm.add2Stack("false")
 	}
-	vm.add2Stack("false")
 
 }
 
@@ -113,6 +115,13 @@ func (vm *VirtualMachine) handleRETURN_VALUE() {
 	}
 }
 
+func (vm *VirtualMachine) handlePOP_JUMP_IF_FALSE(b BytecodeInstruction) {
+	boo_lean := vm.popStack()
+	if boo_lean == "false" {
+		vm.currentLine, _ = strconv.Atoi(b.ArgIndex)
+	}
+}
+
 func (vm *VirtualMachine) handleCALL_FUNCTION(b BytecodeInstruction) {
 	num_args, _ := strconv.Atoi(b.ArgIndex)
 	args := make([]interface{}, num_args)
@@ -129,7 +138,14 @@ func (vm *VirtualMachine) handleCALL_FUNCTION(b BytecodeInstruction) {
 }
 
 func (vm *VirtualMachine) run() {
-	for _, instruction := range vm.bytecodes {
+
+	for i, instruction := range vm.bytecodes {
+		if vm.currentLine != i*2 {
+			vm.currentLine += 2
+			continue
+		} else {
+			vm.currentLine += 2
+		}
 		switch opcode := instruction.Opcode; opcode {
 		case "LOAD_NAME":
 			vm.handleLOAD_NAME(instruction)
@@ -153,9 +169,15 @@ func (vm *VirtualMachine) run() {
 			vm.handleSTORE_NAME(instruction)
 		case "COMPARE_OP":
 			vm.handleCOMPARE_OP()
+		case "POP_JUMP_IF_FALSE":
+			vm.handlePOP_JUMP_IF_FALSE(instruction)
 		default:
 			fmt.Println("WHOOPS, " + opcode + " NOT RECOGNIZED")
 		}
+		if Display_bytecode_mode {
+			fmt.Println(vm.stack)
+		}
+
 	}
 }
 
