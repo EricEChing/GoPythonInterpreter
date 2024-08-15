@@ -11,13 +11,13 @@ func GetArg(s string) string {
 
 	startIndex := strings.Index(s, "(")
 	if startIndex == -1 {
-		return ""
+		startIndex = 0
 	}
 
 	startIndex += start
 	endIndex := strings.Index(s, ")")
 	if endIndex == -1 {
-		return ""
+		endIndex = len(s) - 1
 	}
 	return s[startIndex+1 : endIndex]
 }
@@ -68,6 +68,8 @@ func ParseBytecode(bytecode string) ([]BytecodeInstruction, error) {
 
 			if (IsInt(elements[0]) && IsInt(elements[1])) || elements[0] == ">>" {
 				instruction.LineNumber, instruction.Opcode, instruction.ArgIndex = elements[1], elements[2], elements[3]
+			} else if elements[1] == ">>" {
+				instruction.LineNumber, instruction.Opcode, instruction.ArgIndex = elements[2], elements[3], elements[4]
 			} else {
 				instruction.LineNumber, instruction.Opcode, instruction.ArgIndex = elements[0], elements[1], elements[2]
 			}

@@ -1,7 +1,3 @@
-x=2
-y=2
+list = [0, 1, 2, 3]
 
-print("Hello")
-
-if x == y:
-    print('Yay!')
+print(list)

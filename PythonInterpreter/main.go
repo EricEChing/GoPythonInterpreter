@@ -10,7 +10,8 @@ import (
 	"strconv"
 )
 
-var Display_bytecode_mode bool = false
+var Display_bytecode_mode bool = true
+var Display_stack bool = false
 
 func main() {
 	dir, _ := os.Getwd()

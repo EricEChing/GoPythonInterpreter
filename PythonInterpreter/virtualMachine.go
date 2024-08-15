@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 type VirtualMachine struct {
@@ -22,16 +23,53 @@ func (vm *VirtualMachine) popStack() string {
 	return topOfDaStack
 }
 
-func (vm *VirtualMachine) handleCOMPARE_OP() {
+func (vm *VirtualMachine) handleCOMPARE_OP(b BytecodeInstruction) {
 	arg1 := vm.popStack()
 	arg2 := vm.popStack()
 
-	if arg1 == arg2 {
-		vm.add2Stack("true")
-	} else {
-		vm.add2Stack("false")
+	if b.Argument == "==" {
+		if arg1 == arg2 {
+			vm.add2Stack("true")
+		} else {
+			vm.add2Stack("false")
+		}
+	} else if b.Argument == "!=" {
+		if arg1 != arg2 {
+			vm.add2Stack("true")
+		} else {
+			vm.add2Stack("false")
+		}
 	}
 
+}
+
+func (vm *VirtualMachine) handleBUILD_LIST() {
+	// assumes BUILD_LIST has no args
+	vm.add2Stack("[]")
+}
+
+func (vm *VirtualMachine) handleLIST_EXTEND(b BytecodeInstruction) {
+	num_args, _ := strconv.Atoi(b.ArgIndex)
+	args := make([]string, num_args)
+	for i := 0; i < num_args; i++ {
+		arg := vm.popStack()
+		args[i] = arg
+	}
+	list := vm.popStack()
+
+	protoList := ""
+
+	if list == "[]" {
+		protoList += "["
+
+		for _, v := range args {
+			protoList += v
+			protoList += ", "
+		}
+		protoList = protoList[:len(protoList)-2]
+		protoList += "]"
+		vm.add2Stack(protoList)
+	}
 }
 
 func (vm *VirtualMachine) handlePOP_TOP() {
@@ -137,11 +175,17 @@ func (vm *VirtualMachine) handleCALL_FUNCTION(b BytecodeInstruction) {
 	}
 }
 
+func (vm *VirtualMachine) handleJUMP_FORWARD(b BytecodeInstruction) {
+	elems := strings.Split(b.Argument, " ")
+	line := elems[1]
+	lineInt, _ := strconv.Atoi(line)
+	vm.currentLine = lineInt
+}
+
 func (vm *VirtualMachine) run() {
 
 	for i, instruction := range vm.bytecodes {
 		if vm.currentLine != i*2 {
-			vm.currentLine += 2
 			continue
 		} else {
 			vm.currentLine += 2
@@ -168,13 +212,19 @@ func (vm *VirtualMachine) run() {
 		case "STORE_NAME":
 			vm.handleSTORE_NAME(instruction)
 		case "COMPARE_OP":
-			vm.handleCOMPARE_OP()
+			vm.handleCOMPARE_OP(instruction)
 		case "POP_JUMP_IF_FALSE":
 			vm.handlePOP_JUMP_IF_FALSE(instruction)
+		case "JUMP_FORWARD":
+			vm.handleJUMP_FORWARD(instruction)
+		case "BUILD_LIST":
+			vm.handleBUILD_LIST()
+		case "LIST_EXTEND":
+			vm.handleLIST_EXTEND(instruction)
 		default:
 			fmt.Println("WHOOPS, " + opcode + " NOT RECOGNIZED")
 		}
-		if Display_bytecode_mode {
+		if Display_stack {
 			fmt.Println(vm.stack)
 		}
 
@@ -184,6 +234,7 @@ func (vm *VirtualMachine) run() {
 func makeDaVM(b []BytecodeInstruction) *VirtualMachine {
 	var namespace = map[string]any{
 		"print": "print",
+		"range": "range",
 	}
 	return &VirtualMachine{
 		namespace: namespace,
