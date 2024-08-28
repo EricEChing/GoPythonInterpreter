@@ -53,6 +53,7 @@ func (vm *VirtualMachine) handleLIST_EXTEND(b BytecodeInstruction) {
 	args := make([]string, num_args)
 	for i := 0; i < num_args; i++ {
 		arg := vm.popStack()
+		arg = stripPara(arg)
 		args[i] = arg
 	}
 	list := vm.popStack()
@@ -173,6 +174,12 @@ func (vm *VirtualMachine) handleCALL_FUNCTION(b BytecodeInstruction) {
 		fmt.Println(args[0])
 		vm.add2Stack("None")
 	}
+
+}
+
+func (vm *VirtualMachine) handleGET_ITER() {
+	iterStr := vm.popStack()
+	
 }
 
 func (vm *VirtualMachine) handleJUMP_FORWARD(b BytecodeInstruction) {

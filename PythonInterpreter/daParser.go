@@ -19,7 +19,15 @@ func GetArg(s string) string {
 	if endIndex == -1 {
 		endIndex = len(s) - 1
 	}
-	return s[startIndex+1 : endIndex]
+
+	return stripPara(s[startIndex+1 : endIndex])
+}
+
+func stripPara(s string) string {
+	new_thing := strings.ReplaceAll(s, "(", "")
+	newer_thing := strings.ReplaceAll(new_thing, ")", "")
+	return newer_thing
+
 }
 
 func IsInt(s string) bool {
